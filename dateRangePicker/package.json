@@ -1,0 +1,31 @@
+{
+  "name": "visual",
+  "scripts": {
+    "pbiviz": "pbiviz",
+    "start": "pbiviz start",
+    "package": "pbiviz package",
+    "lint": "npx eslint ."
+  },
+  "dependencies": {
+    "@types/react": "^19.1.4",
+    "@types/react-datepicker": "^6.2.0",
+    "@types/react-dom": "^19.1.5",
+    "d3": "7.9.0",
+    "powerbi-models": "^1.15.2",
+    "powerbi-visuals-utils-formattingmodel": "6.0.4",
+    "react": "^19.1.0",
+    "react-datepicker": "^8.3.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/d3": "7.4.3",
+    "@typescript-eslint/eslint-plugin": "^8.8.0",
+    "css-loader": "^7.1.2",
+    "eslint": "^9.11.1",
+    "eslint-plugin-powerbi-visuals": "^1.0.0",
+    "powerbi-visuals-api": "~5.1.0",
+    "style-loader": "^4.0.0",
+    "ts-loader": "^9.5.2",
+    "typescript": "5.5.4"
+  }
+}

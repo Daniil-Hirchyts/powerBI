@@ -1,0 +1,67 @@
+{
+    "dataRoles": [
+        {
+            "displayName": "Date Field",
+            "name": "dateField",
+            "kind": "Grouping"
+        }
+    ],
+    "dataViewMappings": [
+        {
+            "categorical": {
+                "categories": {
+                    "for": {
+                        "in": "dateField"
+                    },
+                    "dataReductionAlgorithm": {
+                        "top": {}
+                    }
+                }
+            }
+        }
+    ],
+    "objects": {
+        "general": {
+            "displayName": "General",
+            "properties": {
+                "filter": {
+                    "type": {
+                        "filter": true
+                    }
+                },
+                "selfFilter": {
+                    "type": {
+                        "filter": {
+                            "selfFilter": true
+                        }
+                    }
+                },
+                "selfFilterEnabled": {
+                    "type": {
+                        "operations": {
+                            "searchEnabled": true
+                        }
+                    }
+                }
+            }
+        },
+        "dateRangeSettings": {
+            "displayName": "Date Range Settings",
+            "properties": {
+                "startDateLabel": {
+                    "displayName": "Start Date Label",
+                    "type": { "text": true }
+                },
+                "endDateLabel": {
+                    "displayName": "End Date Label",
+                    "type": { "text": true }
+                },
+                "applyButtonText": {
+                    "displayName": "Apply Button Text",
+                    "type": { "text": true }
+                }
+            }
+        }
+    },
+    "privileges": []
+}
