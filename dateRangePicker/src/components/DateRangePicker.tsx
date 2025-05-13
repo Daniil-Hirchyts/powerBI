@@ -1,114 +1,103 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
+import { addDays, format } from 'date-fns';
+import { DateRange } from 'react-day-picker';
+import { Button } from './ui/button';
+import { Calendar } from './ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { cn } from '../utils';
+
+// Calendar icon component
+function CalendarIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4 mr-2"
+      {...props}
+    >
+      <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+      <line x1="16" x2="16" y1="2" y2="6" />
+      <line x1="8" x2="8" y1="2" y2="6" />
+      <line x1="3" x2="21" y1="10" y2="10" />
+    </svg>
+  );
+}
 
 interface DateRangePickerProps {
-    startDateLabel: string;
-    endDateLabel: string;
-    applyButtonText: string;
-    onApply: (startDate: Date, endDate: Date) => void;
-    className?: string;
+  className?: string;
+  buttonLabel?: string;
+  placeholder?: string;
+  numberOfMonths?: number;
+  onRangeChange: (from: Date | undefined, to: Date | undefined) => void;
+  initialDateRange?: DateRange;
+  dateFormat?: string;
+  buttonVariant?: 'default' | 'outline';
 }
 
 export const DateRangePicker: React.FC<DateRangePickerProps> = ({
-    startDateLabel,
-    endDateLabel,
-    applyButtonText,
-    onApply,
-    className = ''
+  className,
+  buttonLabel = 'Select date range',
+  placeholder = 'Select date range',
+  numberOfMonths = 2,
+  onRangeChange,
+  initialDateRange,
+  dateFormat = 'LLL dd, y',
+  buttonVariant = 'outline'
 }) => {
-    const [startDate, setStartDate] = useState<Date | null>(null);
-    const [endDate, setEndDate] = useState<Date | null>(null);
-    const [error, setError] = useState<string | null>(null);
+  // State for the selected date range
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(initialDateRange);
 
-    useEffect(() => {
-        // For debugging - verify component is mounting
-        console.log("DateRangePicker component mounted");
-        return () => console.log("DateRangePicker component unmounted");
-    }, []);
-
-    const handleStartDateChange = (date: Date) => {
-        try {
-            setStartDate(date);
-            // If end date is earlier than the new start date, update it
-            if (endDate && date > endDate) {
-                setEndDate(date);
-            }
-        } catch (e) {
-            console.error("Error in handleStartDateChange:", e);
-            setError(e.message);
-        }
-    };
-
-    const handleEndDateChange = (date: Date) => {
-        try {
-            setEndDate(date);
-        } catch (e) {
-            console.error("Error in handleEndDateChange:", e);
-            setError(e.message);
-        }
-    };
-
-    const handleApplyClick = () => {
-        try {
-            if (startDate && endDate) {
-                onApply(startDate, endDate);
-            }
-        } catch (e) {
-            console.error("Error in handleApplyClick:", e);
-            setError(e.message);
-        }
-    };
-
-    if (error) {
-        return (
-            <div style={{ padding: '10px', color: 'red', border: '1px solid red', borderRadius: '4px' }}>
-                Error: {error}
-            </div>
-        );
+  // Format the date range for display
+  const formattedDateRange = React.useMemo(() => {
+    if (!dateRange?.from) {
+      return placeholder;
     }
+    if (dateRange.to) {
+      return `${format(dateRange.from, dateFormat)} - ${format(dateRange.to, dateFormat)}`;
+    }
+    return format(dateRange.from, dateFormat);
+  }, [dateRange, dateFormat, placeholder]);
 
-    return (
-        <div className={`date-range-picker ${className}`}>
-            <div className="date-picker-container">
-                <div className="date-field">
-                    <label>{startDateLabel}</label>
-                    <DatePicker
-                        selected={startDate}
-                        onChange={handleStartDateChange}
-                        selectsStart
-                        startDate={startDate}
-                        endDate={endDate}
-                        dateFormat="yyyy-MM-dd"
-                        placeholderText="Select start date"
-                        calendarClassName="date-picker-calendar"
-                    />
-                </div>
-                
-                <div className="date-field">
-                    <label>{endDateLabel}</label>
-                    <DatePicker
-                        selected={endDate}
-                        onChange={handleEndDateChange}
-                        selectsEnd
-                        startDate={startDate}
-                        endDate={endDate}
-                        minDate={startDate}
-                        dateFormat="yyyy-MM-dd"
-                        placeholderText="Select end date"
-                        calendarClassName="date-picker-calendar"
-                    />
-                </div>
-            </div>
-            
-            <button 
-                className="apply-button"
-                onClick={handleApplyClick}
-                disabled={!startDate || !endDate}
-            >
-                {applyButtonText}
-            </button>
-        </div>
-    );
+  // Apply filter automatically when the date range changes
+  useEffect(() => {
+    if (dateRange?.from) {
+      onRangeChange(dateRange.from, dateRange.to || dateRange.from);
+    } else {
+      onRangeChange(undefined, undefined);
+    }
+  }, [dateRange, onRangeChange]);
+
+  return (
+    <div className={cn("date-range-picker-container w-full", className)}>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant={buttonVariant}
+            className="w-full justify-start font-normal text-left"
+          >
+            <CalendarIcon />
+            <span>{formattedDateRange}</span>
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar
+            initialFocus
+            mode="range"
+            defaultMonth={dateRange?.from}
+            selected={dateRange}
+            onSelect={setDateRange}
+            numberOfMonths={numberOfMonths}
+          />
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
 }; 

@@ -34,47 +34,94 @@ import FormattingSettingsSlice = formattingSettings.Slice;
 import FormattingSettingsModel = formattingSettings.Model;
 
 /**
- * Date Range Settings Card
+ * Date Range Picker General Settings Card
  */
-class DateRangeSettingsCard extends FormattingSettingsCard {
-    startDateLabel = new formattingSettings.TextInput({
-        name: "startDateLabel",
-        displayName: "Start Date Label",
-        value: "Start Date",
-        placeholder: "Start Date"
-    });
+class GeneralSettingsCard extends FormattingSettingsCard {
+  buttonLabel = new formattingSettings.TextInput({
+    name: "buttonLabel",
+    displayName: "Button Label",
+    value: "Select date range",
+    placeholder: "Select date range"
+  });
 
-    endDateLabel = new formattingSettings.TextInput({
-        name: "endDateLabel",
-        displayName: "End Date Label",
-        value: "End Date",
-        placeholder: "End Date"
-    });
+  placeholder = new formattingSettings.TextInput({
+    name: "placeholder",
+    displayName: "Placeholder Text",
+    value: "Select date range",
+    placeholder: "Select date range"
+  });
 
-    applyButtonText = new formattingSettings.TextInput({
-        name: "applyButtonText",
-        displayName: "Apply Button Text",
-        value: "Apply",
-        placeholder: "Apply"
-    });
+  dateFormat = new formattingSettings.TextInput({
+    name: "dateFormat",
+    displayName: "Date Format",
+    value: "LLL dd, y",
+    placeholder: "LLL dd, y"
+  });
 
-    name: string = "dateRangeSettings";
-    displayName: string = "Date Range Settings";
-    slices: Array<FormattingSettingsSlice> = [this.startDateLabel, this.endDateLabel, this.applyButtonText];
+  // Using TextInput as a workaround for NumUpDown type issues
+  numberOfMonths = new formattingSettings.TextInput({
+    name: "numberOfMonths",
+    displayName: "Number of Months (1-3)",
+    value: "2",
+    placeholder: "Enter a number between 1 and 3"
+  });
+
+  name: string = "generalSettings";
+  displayName: string = "General Settings";
+  slices: Array<FormattingSettingsSlice> = [this.buttonLabel, this.placeholder, this.dateFormat, this.numberOfMonths];
+}
+
+/**
+ * Style Settings Card
+ */
+class StyleSettingsCard extends FormattingSettingsCard {
+  buttonVariant = new formattingSettings.ItemDropdown({
+    name: "buttonVariant",
+    displayName: "Button Style",
+    value: { value: "outline", displayName: "Outline" },
+    items: [
+      { value: "default", displayName: "Default (Dark)" },
+      { value: "outline", displayName: "Outline" }
+    ]
+  });
+
+  primaryColor = new formattingSettings.ColorPicker({
+    name: "primaryColor",
+    displayName: "Primary Color",
+    value: { value: "#0f172a" }
+  });
+
+  secondaryColor = new formattingSettings.ColorPicker({
+    name: "secondaryColor",
+    displayName: "Secondary Color",
+    value: { value: "#e2e8f0" }
+  });
+
+  fontFamily = new formattingSettings.TextInput({
+    name: "fontFamily",
+    displayName: "Font Family",
+    value: "Segoe UI, sans-serif",
+    placeholder: "Segoe UI, sans-serif"
+  });
+
+  name: string = "styleSettings";
+  displayName: string = "Style Settings";
+  slices: Array<FormattingSettingsSlice> = [this.buttonVariant, this.primaryColor, this.secondaryColor, this.fontFamily];
 }
 
 export interface FilterTarget {
-    table: string;
-    column: string;
-    ref: string;
+  table: string;
+  column: string;
+  ref: string;
 }
 
 /**
  * Visual settings model class
  */
 export class VisualFormattingSettingsModel extends FormattingSettingsModel {
-    // Create formatting settings model formatting cards
-    dateRangeSettings = new DateRangeSettingsCard();
+  // Create formatting settings model cards
+  generalSettings = new GeneralSettingsCard();
+  styleSettings = new StyleSettingsCard();
 
-    cards = [this.dateRangeSettings];
+  cards = [this.generalSettings, this.styleSettings];
 }

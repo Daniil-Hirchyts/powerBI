@@ -45,19 +45,47 @@
                 }
             }
         },
-        "dateRangeSettings": {
-            "displayName": "Date Range Settings",
+        "generalSettings": {
+            "displayName": "General Settings",
             "properties": {
-                "startDateLabel": {
-                    "displayName": "Start Date Label",
+                "buttonLabel": {
+                    "displayName": "Button Label",
                     "type": { "text": true }
                 },
-                "endDateLabel": {
-                    "displayName": "End Date Label",
+                "placeholder": {
+                    "displayName": "Placeholder Text",
                     "type": { "text": true }
                 },
-                "applyButtonText": {
-                    "displayName": "Apply Button Text",
+                "dateFormat": {
+                    "displayName": "Date Format",
+                    "type": { "text": true }
+                },
+                "numberOfMonths": {
+                    "displayName": "Number of Months (1-3)",
+                    "type": { "text": true }
+                }
+            }
+        },
+        "styleSettings": {
+            "displayName": "Style Settings",
+            "properties": {
+                "buttonVariant": {
+                    "displayName": "Button Style",
+                    "type": { "enumeration": [
+                        { "value": "default", "displayName": "Default (Dark)" },
+                        { "value": "outline", "displayName": "Outline" }
+                    ]}
+                },
+                "primaryColor": {
+                    "displayName": "Primary Color",
+                    "type": { "fill": { "solid": { "color": true } } }
+                },
+                "secondaryColor": {
+                    "displayName": "Secondary Color",
+                    "type": { "fill": { "solid": { "color": true } } }
+                },
+                "fontFamily": {
+                    "displayName": "Font Family",
                     "type": { "text": true }
                 }
             }

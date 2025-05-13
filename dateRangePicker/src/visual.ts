@@ -29,6 +29,7 @@ import powerbi from "powerbi-visuals-api";
 import { FormattingSettingsService } from "powerbi-visuals-utils-formattingmodel";
 import "./../style/visual.less";
 import "../style/dateRangePicker.css";
+import "../style/shadcn.css";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { DateRangePicker } from "./components/DateRangePicker";
@@ -36,6 +37,7 @@ import {
     VisualFormattingSettingsModel, 
     FilterTarget 
 } from "./settings";
+import { DateRange } from "react-day-picker";
 
 import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;
 import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
@@ -54,6 +56,7 @@ export class Visual implements IVisual {
     private formattingSettingsService: FormattingSettingsService;
     private host: IVisualHost;
     private filterTarget: IFilterColumnTarget | undefined;
+    private initialDateRange: DateRange | undefined;
 
     constructor(options: VisualConstructorOptions) {
         this.target = options.element;
@@ -71,47 +74,18 @@ export class Visual implements IVisual {
         this.reactRoot.style.backgroundColor = "white";
         this.reactRoot.style.overflow = "auto";
         
-        // Force styles to be visible
+        // Add styles for the shadcn components
         const style = document.createElement("style");
         style.textContent = `
-            .date-range-picker {
-                font-family: "Segoe UI", -apple-system, sans-serif;
+            .date-range-picker-wrapper {
+                display: flex;
+                align-items: center;
+                justify-content: center;
                 padding: 12px;
+            }
+            .date-range-picker-container {
                 width: 100%;
-                height: 100%;
-                display: flex;
-                flex-direction: column;
-                background-color: white;
-                border-radius: 4px;
-                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-                min-height: 150px;
-            }
-            .date-picker-container {
-                display: flex;
-                flex-direction: column;
-                gap: 12px;
-                margin-bottom: 16px;
-            }
-            .date-field {
-                display: flex;
-                flex-direction: column;
-                gap: 6px;
-            }
-            .date-field label {
-                font-size: 12px;
-                font-weight: 600;
-                color: #252423;
-            }
-            .apply-button {
-                background-color: #0078d4;
-                color: white;
-                border: none;
-                border-radius: 4px;
-                padding: 8px 16px;
-                font-size: 14px;
-                cursor: pointer;
-                height: 36px;
-                align-self: flex-end;
+                max-width: 400px;
             }
         `;
         document.head.appendChild(style);
@@ -211,19 +185,35 @@ export class Visual implements IVisual {
             this.reactRoot.style.overflow = "auto";
             
             // Get settings from formatting options
-            const startDateLabel = this.formattingSettings.dateRangeSettings.startDateLabel.value || "Start Date";
-            const endDateLabel = this.formattingSettings.dateRangeSettings.endDateLabel.value || "End Date";
-            const applyButtonText = this.formattingSettings.dateRangeSettings.applyButtonText.value || "Apply";
+            const { generalSettings, styleSettings } = this.formattingSettings;
 
-            console.log("Rendering with settings:", { startDateLabel, endDateLabel, applyButtonText });
+            // Apply custom CSS for colors
+            const customStyle = document.createElement('style');
+            customStyle.textContent = `
+                .rdp-day_selected, .rdp-day_range_start, .rdp-day_range_end {
+                    background-color: ${styleSettings.primaryColor.value.value} !important;
+                }
+                .rdp-day_range_middle {
+                    background-color: ${styleSettings.secondaryColor.value.value} !important;
+                    color: ${styleSettings.primaryColor.value.value} !important;
+                }
+                .date-range-picker-container {
+                    font-family: ${styleSettings.fontFamily.value};
+                }
+            `;
+            document.head.appendChild(customStyle);
 
-            // Create a simple fallback UI if ReactDOM or DateRangePicker fails
+            console.log("Rendering with settings:", { generalSettings, styleSettings });
+
             try {
                 const reactElement = React.createElement(DateRangePicker, {
-                    startDateLabel: startDateLabel,
-                    endDateLabel: endDateLabel,
-                    applyButtonText: applyButtonText,
-                    onApply: this.handleDateRangeApply.bind(this)
+                    buttonLabel: generalSettings.buttonLabel.value,
+                    placeholder: generalSettings.placeholder.value,
+                    dateFormat: generalSettings.dateFormat.value,
+                    numberOfMonths: parseInt(generalSettings.numberOfMonths.value, 10) || 2,
+                    buttonVariant: (styleSettings.buttonVariant.value.value as string) as 'default' | 'outline',
+                    initialDateRange: this.initialDateRange,
+                    onRangeChange: this.handleDateRangeChange.bind(this)
                 });
 
                 // Use the legacy render method for compatibility with PowerBI visuals API
@@ -233,42 +223,13 @@ export class Visual implements IVisual {
             } catch (reactError) {
                 console.error("Error in React rendering:", reactError);
                 
-                // Create a fallback HTML structure
+                // Display error message if component fails to render
                 this.reactRoot.innerHTML = `
-                    <div class="date-range-picker">
-                        <div class="date-picker-container">
-                            <div class="date-field">
-                                <label>${startDateLabel}</label>
-                                <input type="date" id="startDate" class="fallback-date-input" />
-                            </div>
-                            
-                            <div class="date-field">
-                                <label>${endDateLabel}</label>
-                                <input type="date" id="endDate" class="fallback-date-input" />
-                            </div>
-                        </div>
-                        
-                        <button class="apply-button" id="applyButton">${applyButtonText}</button>
+                    <div style="padding: 20px; border: 1px solid #f0f0f0; border-radius: 4px; background: white;">
+                        <h3 style="margin-top: 0; color: #333;">Date Range Picker</h3>
+                        <p style="color: #666;">Error rendering component: ${reactError.message}</p>
                     </div>
                 `;
-                
-                // Add event listeners to the fallback HTML
-                const applyButton = this.reactRoot.querySelector('#applyButton');
-                const startDateInput = this.reactRoot.querySelector('#startDate') as HTMLInputElement;
-                const endDateInput = this.reactRoot.querySelector('#endDate') as HTMLInputElement;
-                
-                if (applyButton && startDateInput && endDateInput) {
-                    applyButton.addEventListener('click', () => {
-                        const startDate = startDateInput.value ? new Date(startDateInput.value) : null;
-                        const endDate = endDateInput.value ? new Date(endDateInput.value) : null;
-                        
-                        if (startDate && endDate) {
-                            this.handleDateRangeApply(startDate, endDate);
-                        }
-                    });
-                }
-                
-                console.log("Fallback HTML rendered successfully");
             }
         } catch (error) {
             console.error("Error rendering component:", error);
@@ -278,30 +239,55 @@ export class Visual implements IVisual {
         }
     }
 
-    private handleDateRangeApply(startDate: Date, endDate: Date): void {
-        if (!this.filterTarget) return;
+    private handleDateRangeChange(startDate: Date | undefined, endDate: Date | undefined): void {
+        if (!this.filterTarget) {
+            console.log("Filter target is not available");
+            return;
+        }
 
-        // Create filter conditions
-        const conditions: IAdvancedFilterCondition[] = [
-            {
-                operator: "GreaterThanOrEqual",
-                value: startDate.toISOString()
-            },
-            {
-                operator: "LessThanOrEqual",
-                value: endDate.toISOString()
+        try {
+            // Store the selected date range for persistence
+            if (startDate && endDate) {
+                this.initialDateRange = {
+                    from: startDate,
+                    to: endDate
+                };
+            } else {
+                this.initialDateRange = undefined;
             }
-        ];
 
-        // Create the Advanced Filter 
-        const filter = new AdvancedFilter(
-            this.filterTarget,
-            "And",
-            conditions
-        );
+            // If no dates are selected, clear the filter
+            if (!startDate || !endDate) {
+                this.host.applyJsonFilter(null, "general", "filter", powerbi.FilterAction.remove);
+                console.log("Filter cleared");
+                return;
+            }
 
-        // Apply the filter to the visual
-        this.host.applyJsonFilter(filter, "general", "filter", powerbi.FilterAction.merge);
+            // Create filter conditions
+            const conditions: IAdvancedFilterCondition[] = [
+                {
+                    operator: "GreaterThanOrEqual",
+                    value: startDate.toISOString()
+                },
+                {
+                    operator: "LessThanOrEqual",
+                    value: endDate.toISOString()
+                }
+            ];
+
+            // Create the Advanced Filter 
+            const filter = new AdvancedFilter(
+                this.filterTarget,
+                "And",
+                conditions
+            );
+
+            // Apply the filter to the visual
+            this.host.applyJsonFilter(filter, "general", "filter", powerbi.FilterAction.merge);
+            console.log("Applied filter:", filter);
+        } catch (error) {
+            console.error("Error applying filter:", error);
+        }
     }
 
     /**
