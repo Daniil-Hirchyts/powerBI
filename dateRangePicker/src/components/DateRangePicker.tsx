@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { DayPicker, DateRange } from 'react-day-picker';
+import * as ReactDOM from 'react-dom';
 import 'react-day-picker/dist/style.css';
 
 // Calendar icon component
@@ -38,6 +39,27 @@ interface DateRangePickerProps {
   buttonVariant?: 'default' | 'outline';
 }
 
+// Portal component to render content outside the component tree
+function Portal({ children }: { children: React.ReactNode }) {
+  const [container] = useState(() => document.createElement('div'));
+  
+  useEffect(() => {
+    // Add the portal container to document body
+    document.body.appendChild(container);
+    // Set portal container styles to position it above everything
+    container.style.position = 'absolute';
+    container.style.zIndex = '10000';
+    container.style.top = '0';
+    container.style.left = '0';
+    
+    return () => {
+      document.body.removeChild(container);
+    };
+  }, [container]);
+  
+  return ReactDOM.createPortal(children, container);
+}
+
 export const DateRangePicker: React.FC<DateRangePickerProps> = ({
   className = '',
   buttonLabel = 'Select date range',
@@ -51,7 +73,8 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
   // State for the selected date range
   const [dateRange, setDateRange] = useState<DateRange | undefined>(initialDateRange);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-
+  const [calendarPosition, setCalendarPosition] = useState({ top: 0, left: 0 });
+  
   // Format the date range for display
   const formattedDateRange = React.useMemo(() => {
     if (!dateRange?.from) {
@@ -82,13 +105,22 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
     }
   };
 
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
+  
   const toggleCalendar = () => {
+    if (!isCalendarOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      // Calculate position for calendar dropdown
+      setCalendarPosition({
+        top: rect.bottom + window.scrollY,
+        left: rect.left + window.scrollX
+      });
+    }
     setIsCalendarOpen(!isCalendarOpen);
   };
 
   // Handle clicks outside of the calendar
   const calendarRef = React.useRef<HTMLDivElement>(null);
-  const buttonRef = React.useRef<HTMLButtonElement>(null);
   
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -132,29 +164,31 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
       </button>
       
       {isCalendarOpen && (
-        <div 
-          ref={calendarRef}
-          className="calendar-popover"
-          style={{
-            position: 'absolute',
-            zIndex: 50,
-            marginTop: '4px',
-            left: '0',
-            backgroundColor: 'white',
-            borderRadius: '6px',
-            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-            border: '1px solid #e2e8f0'
-          }}
-        >
-          <DayPicker
-            mode="range"
-            defaultMonth={dateRange?.from}
-            selected={dateRange}
-            onSelect={handleRangeSelect}
-            numberOfMonths={numberOfMonths}
-            style={{ padding: '12px' }}
-          />
-        </div>
+        <Portal>
+          <div 
+            ref={calendarRef}
+            className="calendar-popover"
+            style={{
+              position: 'fixed',
+              top: `${calendarPosition.top}px`,
+              left: `${calendarPosition.left}px`,
+              backgroundColor: 'white',
+              borderRadius: '6px',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+              border: '1px solid #e2e8f0',
+              zIndex: 10000
+            }}
+          >
+            <DayPicker
+              mode="range"
+              defaultMonth={dateRange?.from}
+              selected={dateRange}
+              onSelect={handleRangeSelect}
+              numberOfMonths={numberOfMonths}
+              style={{ padding: '12px' }}
+            />
+          </div>
+        </Portal>
       )}
     </div>
   );

@@ -14,7 +14,15 @@ p {
     height: 100%;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
+    padding: 1% 2%;
+    box-sizing: border-box;
+}
+
+/* Responsive styles for the date range picker */
+.date-range-picker-container {
+    width: 100%;
+    max-width: 100%;
 }
 
 /* Override day picker styles to use PowerBI theme */
@@ -26,4 +34,17 @@ p {
 .rdp-day_range_middle {
     background-color: rgba(0, 120, 212, 0.2) !important;
     color: #0078d4 !important;
+}
+
+/* Make sure popup stays visible */
+.calendar-popover {
+    max-width: 95vw;
+}
+
+/* Make calendar responsive on small screens */
+@media (max-width: 640px) {
+    .rdp {
+        --rdp-cell-size: 30px !important;
+        font-size: 12px !important;
+    }
 }
