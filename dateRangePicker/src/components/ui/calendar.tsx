@@ -1,5 +1,5 @@
 import * as React from "react";
-import { DayPicker, DropdownProps } from "react-day-picker";
+import { DayPicker } from "react-day-picker";
 import { cn } from "../../utils";
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
@@ -46,9 +46,7 @@ export function Calendar({
         ...classNames,
       }}
       components={{
-        // @ts-ignore: Custom components are not well-typed
         IconLeft: () => <ChevronLeft className="h-4 w-4" />,
-        // @ts-ignore: Custom components are not well-typed
         IconRight: () => <ChevronRight className="h-4 w-4" />,
       }}
       {...props}

@@ -216,9 +216,11 @@ export class Visual implements IVisual {
                     onRangeChange: this.handleDateRangeChange.bind(this)
                 });
 
-                // Use the legacy render method for compatibility with PowerBI visuals API
+                // Use compatible rendering method
+                // React 17 or older render method for PowerBI compatibility
                 // @ts-ignore
                 ReactDOM.render(reactElement, this.reactRoot);
+                
                 console.log("React component rendered successfully");
             } catch (reactError) {
                 console.error("Error in React rendering:", reactError);

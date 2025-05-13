@@ -1,9 +1,8 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-import { addDays, format } from 'date-fns';
-import { DateRange } from 'react-day-picker';
+import { format } from 'date-fns';
+import { DayPicker, DateRange } from 'react-day-picker';
 import { Button } from './ui/button';
-import { Calendar } from './ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { cn } from '../utils';
 
@@ -75,6 +74,11 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
     }
   }, [dateRange, onRangeChange]);
 
+  const handleRangeSelect = (range: DateRange | undefined) => {
+    console.log("Selected range:", range);
+    setDateRange(range);
+  };
+
   return (
     <div className={cn("date-range-picker-container w-full", className)}>
       <Popover>
@@ -88,13 +92,13 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            initialFocus
+          <DayPicker
             mode="range"
             defaultMonth={dateRange?.from}
             selected={dateRange}
-            onSelect={setDateRange}
+            onSelect={handleRangeSelect}
             numberOfMonths={numberOfMonths}
+            className="p-3"
           />
         </PopoverContent>
       </Popover>
