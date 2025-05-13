@@ -2,12 +2,10 @@ import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { DayPicker, DateRange } from 'react-day-picker';
-import { Button } from './ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
-import { cn } from '../utils';
+import 'react-day-picker/dist/style.css';
 
 // Calendar icon component
-function CalendarIcon(props: React.SVGProps<SVGSVGElement>) {
+function CalendarIcon() {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -20,7 +18,6 @@ function CalendarIcon(props: React.SVGProps<SVGSVGElement>) {
       strokeLinecap="round"
       strokeLinejoin="round"
       className="h-4 w-4 mr-2"
-      {...props}
     >
       <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
       <line x1="16" x2="16" y1="2" y2="6" />
@@ -42,7 +39,7 @@ interface DateRangePickerProps {
 }
 
 export const DateRangePicker: React.FC<DateRangePickerProps> = ({
-  className,
+  className = '',
   buttonLabel = 'Select date range',
   placeholder = 'Select date range',
   numberOfMonths = 2,
@@ -53,6 +50,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
 }) => {
   // State for the selected date range
   const [dateRange, setDateRange] = useState<DateRange | undefined>(initialDateRange);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   // Format the date range for display
   const formattedDateRange = React.useMemo(() => {
@@ -77,31 +75,87 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
   const handleRangeSelect = (range: DateRange | undefined) => {
     console.log("Selected range:", range);
     setDateRange(range);
+    
+    // Close the calendar if a complete range is selected
+    if (range?.from && range?.to) {
+      setTimeout(() => setIsCalendarOpen(false), 300);
+    }
   };
 
+  const toggleCalendar = () => {
+    setIsCalendarOpen(!isCalendarOpen);
+  };
+
+  // Handle clicks outside of the calendar
+  const calendarRef = React.useRef<HTMLDivElement>(null);
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
+  
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (calendarRef.current && 
+          !calendarRef.current.contains(event.target as Node) && 
+          buttonRef.current && 
+          !buttonRef.current.contains(event.target as Node)) {
+        setIsCalendarOpen(false);
+      }
+    }
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   return (
-    <div className={cn("date-range-picker-container w-full", className)}>
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            variant={buttonVariant}
-            className="w-full justify-start font-normal text-left"
-          >
-            <CalendarIcon />
-            <span>{formattedDateRange}</span>
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
+    <div className={`date-range-picker-container ${className}`} style={{ position: 'relative', width: '100%' }}>
+      <button
+        ref={buttonRef}
+        onClick={toggleCalendar}
+        className={`date-range-button ${buttonVariant === 'default' ? 'date-range-button-default' : 'date-range-button-outline'}`}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          width: '100%',
+          padding: '8px 12px',
+          borderRadius: '4px',
+          border: buttonVariant === 'outline' ? '1px solid #e2e8f0' : 'none',
+          background: buttonVariant === 'default' ? '#0f172a' : 'white',
+          color: buttonVariant === 'default' ? 'white' : 'inherit',
+          textAlign: 'left',
+          cursor: 'pointer',
+          fontSize: '14px',
+          fontFamily: 'inherit'
+        }}
+      >
+        <CalendarIcon />
+        <span>{formattedDateRange}</span>
+      </button>
+      
+      {isCalendarOpen && (
+        <div 
+          ref={calendarRef}
+          className="calendar-popover"
+          style={{
+            position: 'absolute',
+            zIndex: 50,
+            marginTop: '4px',
+            left: '0',
+            backgroundColor: 'white',
+            borderRadius: '6px',
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+            border: '1px solid #e2e8f0'
+          }}
+        >
           <DayPicker
             mode="range"
             defaultMonth={dateRange?.from}
             selected={dateRange}
             onSelect={handleRangeSelect}
             numberOfMonths={numberOfMonths}
-            className="p-3"
+            style={{ padding: '12px' }}
           />
-        </PopoverContent>
-      </Popover>
+        </div>
+      )}
     </div>
   );
 }; 

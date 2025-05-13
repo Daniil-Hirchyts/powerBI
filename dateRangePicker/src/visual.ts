@@ -28,8 +28,7 @@
 import powerbi from "powerbi-visuals-api";
 import { FormattingSettingsService } from "powerbi-visuals-utils-formattingmodel";
 import "./../style/visual.less";
-import "../style/dateRangePicker.css";
-import "../style/shadcn.css";
+import "react-day-picker/dist/style.css";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { DateRangePicker } from "./components/DateRangePicker";
@@ -71,24 +70,9 @@ export class Visual implements IVisual {
         this.reactRoot.style.width = "100%";
         this.reactRoot.style.height = "100%";
         this.reactRoot.style.minHeight = "200px";
-        this.reactRoot.style.backgroundColor = "white";
+        this.reactRoot.style.backgroundColor = "transparent";
         this.reactRoot.style.overflow = "auto";
-        
-        // Add styles for the shadcn components
-        const style = document.createElement("style");
-        style.textContent = `
-            .date-range-picker-wrapper {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding: 12px;
-            }
-            .date-range-picker-container {
-                width: 100%;
-                max-width: 400px;
-            }
-        `;
-        document.head.appendChild(style);
+        this.reactRoot.style.padding = "12px";
         
         // Add the React container to the visual container
         this.target.appendChild(this.reactRoot);
@@ -179,29 +163,8 @@ export class Visual implements IVisual {
                 return;
             }
 
-            // Ensure the root element is visible and sized correctly
-            this.reactRoot.style.width = "100%";
-            this.reactRoot.style.height = "100%";
-            this.reactRoot.style.overflow = "auto";
-            
             // Get settings from formatting options
             const { generalSettings, styleSettings } = this.formattingSettings;
-
-            // Apply custom CSS for colors
-            const customStyle = document.createElement('style');
-            customStyle.textContent = `
-                .rdp-day_selected, .rdp-day_range_start, .rdp-day_range_end {
-                    background-color: ${styleSettings.primaryColor.value.value} !important;
-                }
-                .rdp-day_range_middle {
-                    background-color: ${styleSettings.secondaryColor.value.value} !important;
-                    color: ${styleSettings.primaryColor.value.value} !important;
-                }
-                .date-range-picker-container {
-                    font-family: ${styleSettings.fontFamily.value};
-                }
-            `;
-            document.head.appendChild(customStyle);
 
             console.log("Rendering with settings:", { generalSettings, styleSettings });
 
@@ -216,9 +179,7 @@ export class Visual implements IVisual {
                     onRangeChange: this.handleDateRangeChange.bind(this)
                 });
 
-                // Use compatible rendering method
-                // React 17 or older render method for PowerBI compatibility
-                // @ts-ignore
+                // Use React render method
                 ReactDOM.render(reactElement, this.reactRoot);
                 
                 console.log("React component rendered successfully");
@@ -230,6 +191,7 @@ export class Visual implements IVisual {
                     <div style="padding: 20px; border: 1px solid #f0f0f0; border-radius: 4px; background: white;">
                         <h3 style="margin-top: 0; color: #333;">Date Range Picker</h3>
                         <p style="color: #666;">Error rendering component: ${reactError.message}</p>
+                        <pre style="background: #f5f5f5; padding: 10px; overflow: auto; font-size: 12px;">${reactError.stack}</pre>
                     </div>
                 `;
             }

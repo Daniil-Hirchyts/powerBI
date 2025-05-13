@@ -12,4 +12,18 @@ p {
 .date-range-picker-wrapper {
     width: 100%;
     height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Override day picker styles to use PowerBI theme */
+.rdp-day_selected, .rdp-day_range_start, .rdp-day_range_end {
+    background-color: #0078d4 !important;
+    color: white !important;
+}
+
+.rdp-day_range_middle {
+    background-color: rgba(0, 120, 212, 0.2) !important;
+    color: #0078d4 !important;
 }
