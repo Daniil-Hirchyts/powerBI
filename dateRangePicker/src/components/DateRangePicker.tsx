@@ -20,24 +20,54 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
 }) => {
     const [startDate, setStartDate] = useState<Date | null>(null);
     const [endDate, setEndDate] = useState<Date | null>(null);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        // For debugging - verify component is mounting
+        console.log("DateRangePicker component mounted");
+        return () => console.log("DateRangePicker component unmounted");
+    }, []);
 
     const handleStartDateChange = (date: Date) => {
-        setStartDate(date);
-        // If end date is earlier than the new start date, update it
-        if (endDate && date > endDate) {
-            setEndDate(date);
+        try {
+            setStartDate(date);
+            // If end date is earlier than the new start date, update it
+            if (endDate && date > endDate) {
+                setEndDate(date);
+            }
+        } catch (e) {
+            console.error("Error in handleStartDateChange:", e);
+            setError(e.message);
         }
     };
 
     const handleEndDateChange = (date: Date) => {
-        setEndDate(date);
+        try {
+            setEndDate(date);
+        } catch (e) {
+            console.error("Error in handleEndDateChange:", e);
+            setError(e.message);
+        }
     };
 
     const handleApplyClick = () => {
-        if (startDate && endDate) {
-            onApply(startDate, endDate);
+        try {
+            if (startDate && endDate) {
+                onApply(startDate, endDate);
+            }
+        } catch (e) {
+            console.error("Error in handleApplyClick:", e);
+            setError(e.message);
         }
     };
+
+    if (error) {
+        return (
+            <div style={{ padding: '10px', color: 'red', border: '1px solid red', borderRadius: '4px' }}>
+                Error: {error}
+            </div>
+        );
+    }
 
     return (
         <div className={`date-range-picker ${className}`}>
